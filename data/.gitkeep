@@ -1,0 +1,3 @@
+# Este archivo mantiene la carpeta data en el repositorio
+# Los archivos CSV generados no se incluyen en el control de versiones
+# pero la carpeta es necesaria para el almacenamiento de datos
