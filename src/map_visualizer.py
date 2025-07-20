@@ -40,6 +40,50 @@ class MapVisualizer:
         
         # Coordenadas del centro de San Martín de Porres
         self.centro_smp = (-11.9775, -77.0904)
+        
+        # Separar puntos superpuestos para mejor visualización
+        self.direcciones_visualizacion = self._separar_puntos_superpuestos()
+    
+    def _separar_puntos_superpuestos(self, distancia_separacion=0.0003):
+        """
+        Separa visualmente los puntos que tienen las mismas coordenadas
+        para evitar superposición en el mapa.
+        """
+        import numpy as np
+        
+        df_separado = self.direcciones.copy()
+        grupos_superpuestos = {}
+        coordenadas_vistas = {}
+        
+        # Detectar puntos superpuestos
+        for idx, row in self.direcciones.iterrows():
+            coord_key = (round(row['latitud'], 6), round(row['longitud'], 6))
+            
+            if coord_key in coordenadas_vistas:
+                if coord_key not in grupos_superpuestos:
+                    grupos_superpuestos[coord_key] = [coordenadas_vistas[coord_key]]
+                grupos_superpuestos[coord_key].append(idx)
+            else:
+                coordenadas_vistas[coord_key] = idx
+        
+        # Separar puntos superpuestos en círculo
+        for coord, puntos in grupos_superpuestos.items():
+            if len(puntos) > 1:
+                lat_base, lon_base = coord
+                
+                for i, punto_idx in enumerate(puntos):
+                    if i == 0:
+                        continue  # El primer punto mantiene su posición
+                    
+                    # Calcular offset en círculo
+                    angulo = (2 * np.pi * i) / len(puntos)
+                    offset_lat = distancia_separacion * np.cos(angulo)
+                    offset_lon = distancia_separacion * np.sin(angulo)
+                    
+                    df_separado.at[punto_idx, 'latitud'] = lat_base + offset_lat
+                    df_separado.at[punto_idx, 'longitud'] = lon_base + offset_lon
+        
+        return df_separado
     
     def crear_mapa_base(self) -> folium.Map:
         """
@@ -64,7 +108,7 @@ class MapVisualizer:
     
     def agregar_marcadores(self):
         """
-        Agrega marcadores para todas las ubicaciones.
+        Agrega marcadores para todas las ubicaciones usando coordenadas separadas.
         """
         if not self.mapa:
             self.crear_mapa_base()
@@ -81,30 +125,43 @@ class MapVisualizer:
             'entrega': 'shopping-cart'
         }
         
-        for idx, direccion in self.direcciones.iterrows():
-            tipo = direccion['tipo']
+        for idx, direccion_original in self.direcciones.iterrows():
+            # Usar coordenadas separadas para visualización
+            direccion_visual = self.direcciones_visualizacion.iloc[idx]
+            tipo = direccion_original['tipo']
             
             # Determinar si el punto está en la ruta optimizada
             if self.ruta_optimizada and idx in self.ruta_optimizada:
                 orden_en_ruta = self.ruta_optimizada.index(idx) + 1
                 popup_text = f"""
-                <b>Orden en ruta: {orden_en_ruta}</b><br>
-                <b>Tipo:</b> {tipo.title()}<br>
-                <b>Dirección:</b> {direccion['direccion']}<br>
-                <b>Coordenadas:</b> {direccion['latitud']:.4f}, {direccion['longitud']:.4f}
+                <div style="font-size: 12px; width: 280px;">
+                    <h4 style="margin: 0; color: {'darkred' if tipo == 'almacen' else 'darkblue'};">
+                        {'🏭 ALMACÉN CENTRAL' if tipo == 'almacen' else f'📦 ENTREGA {idx}'}
+                    </h4>
+                    <hr style="margin: 5px 0;">
+                    <p><b>🔢 Orden en ruta:</b> {orden_en_ruta}</p>
+                    <p><b>📍 Dirección:</b><br>{direccion_original['direccion']}</p>
+                    <p><b>🌐 Coordenadas:</b><br>{direccion_original['latitud']:.6f}, {direccion_original['longitud']:.6f}</p>
+                    {f"<p style='color: orange;'><b>⚠️ Nota:</b> Posición ajustada para mejor visualización</p>" if idx in [8, 13, 15] else ""}
+                </div>
                 """
             else:
                 popup_text = f"""
-                <b>Tipo:</b> {tipo.title()}<br>
-                <b>Dirección:</b> {direccion['direccion']}<br>
-                <b>Coordenadas:</b> {direccion['latitud']:.4f}, {direccion['longitud']:.4f}
+                <div style="font-size: 12px; width: 280px;">
+                    <h4 style="margin: 0; color: {'darkred' if tipo == 'almacen' else 'darkblue'};">
+                        {'🏭 ALMACÉN CENTRAL' if tipo == 'almacen' else f'📦 PUNTO {idx}'}
+                    </h4>
+                    <hr style="margin: 5px 0;">
+                    <p><b>📍 Dirección:</b><br>{direccion_original['direccion']}</p>
+                    <p><b>🌐 Coordenadas:</b><br>{direccion_original['latitud']:.6f}, {direccion_original['longitud']:.6f}</p>
+                </div>
                 """
             
-            # Crear marcador
+            # Crear marcador usando coordenadas visuales
             marcador = folium.Marker(
-                location=[direccion['latitud'], direccion['longitud']],
+                location=[direccion_visual['latitud'], direccion_visual['longitud']],
                 popup=folium.Popup(popup_text, max_width=300),
-                tooltip=f"{tipo.title()}: {direccion['direccion'][:50]}...",
+                tooltip=f"{tipo.title()}: {direccion_original['direccion'][:50]}...",
                 icon=folium.Icon(
                     color=colores[tipo],
                     icon=iconos[tipo],
@@ -115,16 +172,16 @@ class MapVisualizer:
     
     def agregar_ruta_optimizada(self, matriz_distancias: Optional[np.ndarray] = None):
         """
-        Agrega la línea de ruta optimizada al mapa.
+        Agrega la línea de ruta optimizada al mapa usando coordenadas separadas.
         """
         if not self.ruta_optimizada or not self.mapa:
             return
         
-        # Obtener coordenadas de la ruta
+        # Obtener coordenadas de la ruta usando coordenadas separadas para visualización
         coordenadas_ruta = []
         for punto_idx in self.ruta_optimizada:
-            direccion = self.direcciones.iloc[punto_idx]
-            coordenadas_ruta.append([direccion['latitud'], direccion['longitud']])
+            direccion_visual = self.direcciones_visualizacion.iloc[punto_idx]
+            coordenadas_ruta.append([direccion_visual['latitud'], direccion_visual['longitud']])
         
         # Agregar línea de ruta
         folium.PolyLine(
@@ -135,19 +192,22 @@ class MapVisualizer:
             popup='Ruta Optimizada'
         ).add_to(self.mapa)
         
-        # Agregar números de orden en la ruta
+        # Agregar números de orden en la ruta usando coordenadas separadas
         for i, punto_idx in enumerate(self.ruta_optimizada):
-            direccion = self.direcciones.iloc[punto_idx]
+            direccion_visual = self.direcciones_visualizacion.iloc[punto_idx]
+            direccion_original = self.direcciones.iloc[punto_idx]
             
             # Marcador con número de orden
             folium.Marker(
-                location=[direccion['latitud'], direccion['longitud']],
+                location=[direccion_visual['latitud'], direccion_visual['longitud']],
                 icon=folium.DivIcon(
-                    html=f'<div style="font-size: 12px; color: white; font-weight: bold; '
-                         f'text-align: center; background-color: orange; border-radius: 50%; '
-                         f'width: 20px; height: 20px; line-height: 20px;">{i + 1}</div>',
-                    icon_size=(20, 20),
-                    icon_anchor=(10, 10)
+                    html=f'''<div style="font-size: 11px; color: white; font-weight: bold; 
+                             text-align: center; background-color: orange; border-radius: 50%; 
+                             width: 22px; height: 22px; line-height: 22px; 
+                             border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.5);">
+                             {i + 1}</div>''',
+                    icon_size=(22, 22),
+                    icon_anchor=(11, 11)
                 )
             ).add_to(self.mapa)
     
@@ -161,13 +221,14 @@ class MapVisualizer:
         # Crear HTML para el panel de información
         info_html = f"""
         <div style="position: fixed; 
-                    top: 10px; right: 10px; width: 300px; height: auto; 
-                    background-color: white; border:2px solid grey; z-index:9999; 
-                    font-size:14px; padding: 10px; border-radius: 10px;">
-        <h4><i class="fa fa-truck" aria-hidden="true"></i> Información de Ruta</h4>
-        <p><b>📍 Distrito:</b> San Martín de Porres</p>
+                    top: 10px; right: 10px; width: 350px; height: auto; 
+                    background-color: rgba(255, 255, 255, 0.95); border:2px solid grey; z-index:9999; 
+                    font-size:14px; padding: 10px; border-radius: 10px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+        <h4><i class="fa fa-truck" aria-hidden="true"></i> Información de Ruta Optimizada</h4>
+        <p><b>📍 Distrito:</b> San Martín de Porres, Lima</p>
         <p><b>🏭 Punto de partida:</b> Almacén Central</p>
-        <p><b>📦 Entregas:</b> {len(self.ruta_optimizada) - 1}</p>
+        <p><b>📦 Entregas totales:</b> {len(self.ruta_optimizada) - 1}</p>
         """
         
         if resultados_optimizacion:
@@ -185,6 +246,8 @@ class MapVisualizer:
                     """
         
         info_html += """
+        <hr style="margin: 10px 0;">
+        <p style="font-size: 11px; color: #666;">⚠️ Puntos con coordenadas idénticas han sido separados visualmente para mejor visualización</p>
         <p><i>Haga clic en los marcadores para más información</i></p>
         </div>
         """
