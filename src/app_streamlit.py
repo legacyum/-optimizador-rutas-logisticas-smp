@@ -304,18 +304,31 @@ with tab3:
             if mapa_existe:
                 st.success("✅ Mapa disponible")
                 
-                # Crear link para abrir el mapa
+                # Leer el contenido del archivo HTML del mapa
                 archivo_mapa = os.path.join(output_dir, "mapa_ruta_optimizada.html")
-                mapa_path = os.path.abspath(archivo_mapa).replace('\\', '/')
                 
-                st.markdown(f"""
-                <div style="padding: 20px; border: 2px solid #1f77b4; border-radius: 10px; background-color: #f0f8ff;">
-                    <h4>🗺️ Mapa de Ruta Optimizada</h4>
-                    <p>El mapa interactivo ha sido generado con la ruta optimizada.</p>
-                    <p><strong>Archivo:</strong> <code>{archivo_mapa}</code></p>
-                    <p><em>Abra este archivo en su navegador para ver el mapa interactivo.</em></p>
-                </div>
-                """, unsafe_allow_html=True)
+                try:
+                    with open(archivo_mapa, 'r', encoding='utf-8') as f:
+                        mapa_html = f.read()
+                    
+                    # Mostrar el mapa directamente en Streamlit
+                    st.components.v1.html(mapa_html, height=600, scrolling=True)
+                    
+                    # Información adicional
+                    st.info(f"📁 Archivo guardado en: `{archivo_mapa}`")
+                    
+                except Exception as e:
+                    st.error(f"❌ Error cargando mapa: {e}")
+                    
+                    # Fallback: mostrar información del archivo
+                    st.markdown(f"""
+                    <div style="padding: 20px; border: 2px solid #1f77b4; border-radius: 10px; background-color: #f0f8ff;">
+                        <h4>🗺️ Mapa de Ruta Optimizada</h4>
+                        <p>El mapa interactivo ha sido generado con la ruta optimizada.</p>
+                        <p><strong>Archivo:</strong> <code>{archivo_mapa}</code></p>
+                        <p><em>Abra este archivo en su navegador para ver el mapa interactivo.</em></p>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
                 # Mostrar información de la ruta
                 if ruta_existe:
