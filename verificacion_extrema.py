@@ -22,7 +22,7 @@ from route_optimizer import RouteOptimizer
 
 def crear_mapa_verificacion_completa():
     """Crea un mapa con tabla de verificación completa"""
-    print("🔍 CREANDO MAPA CON VERIFICACIÓN VISUAL EXTREMA")
+    print("CREANDO MAPA CON VERIFICACION VISUAL EXTREMA")
     print("=" * 70)
     
     # 1. Cargar datos y optimizar

@@ -22,12 +22,12 @@ from route_optimizer import RouteOptimizer
 
 def crear_mapa_super_separado():
     """Crea un mapa con separación EXTREMA de puntos superpuestos"""
-    print("🎯 CREANDO MAPA CON SEPARACIÓN EXTREMA")
+    print("CREANDO MAPA CON SEPARACION EXTREMA")
     print("=" * 60)
     
     # 1. Cargar datos
     df = pd.read_csv("data/direcciones_ejemplo.csv")
-    print(f"✅ Datos cargados: {len(df)} puntos")
+    print(f"Datos cargados: {len(df)} puntos")
     
     # 2. Identificar y separar puntos superpuestos de forma EXTREMA
     df_separado = df.copy()

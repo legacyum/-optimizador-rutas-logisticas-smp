@@ -15,7 +15,7 @@ try:
     ORTOOLS_AVAILABLE = True
 except ImportError:
     ORTOOLS_AVAILABLE = False
-    print("⚠️ OR-Tools no disponible. Se usarán algoritmos alternativos.")
+    print("ADVERTENCIA: OR-Tools no disponible. Se usaran algoritmos alternativos.")
 
 
 class RouteOptimizer:
@@ -40,10 +40,10 @@ class RouteOptimizer:
         Solo recomendado para pequeño número de puntos (<10).
         """
         if self.num_puntos > 10:
-            print("⚠️ Demasiados puntos para fuerza bruta. Usando algoritmo heurístico.")
+            print("ADVERTENCIA: Demasiados puntos para fuerza bruta. Usando algoritmo heuristico.")
             return self.algoritmo_vecino_mas_cercano()
         
-        print("🔍 Ejecutando algoritmo de fuerza bruta...")
+        print("Ejecutando algoritmo de fuerza bruta...")
         
         # Puntos a visitar (excluyendo el punto de partida)
         puntos = list(range(1, self.num_puntos))
@@ -67,7 +67,7 @@ class RouteOptimizer:
         Implementa algoritmo heurístico del vecino más cercano.
         Rápido pero no garantiza solución óptima.
         """
-        print("🎯 Ejecutando algoritmo del vecino más cercano...")
+        print("Ejecutando algoritmo del vecino mas cercano...")
         
         ruta = [0]  # Empezar en el almacén
         no_visitados = set(range(1, self.num_puntos))
@@ -97,10 +97,10 @@ class RouteOptimizer:
         Más eficiente y preciso para problemas grandes.
         """
         if not ORTOOLS_AVAILABLE:
-            print("⚠️ OR-Tools no disponible. Usando vecino más cercano.")
+            print("ADVERTENCIA: OR-Tools no disponible. Usando vecino mas cercano.")
             return self.algoritmo_vecino_mas_cercano()
         
-        print("🚀 Ejecutando optimización con OR-Tools...")
+        print("Ejecutando optimizacion con OR-Tools...")
         
         # Crear el modelo de routing
         manager = pywrapcp.RoutingIndexManager(
@@ -146,7 +146,7 @@ class RouteOptimizer:
             
             return ruta, distancia_total
         else:
-            print("⚠️ No se encontró solución con OR-Tools. Usando vecino más cercano.")
+            print("ADVERTENCIA: No se encontro solucion con OR-Tools. Usando vecino mas cercano.")
             return self.algoritmo_vecino_mas_cercano()
     
     def calcular_distancia_ruta(self, ruta: List[int]) -> float:
@@ -158,7 +158,7 @@ class RouteOptimizer:
             distancia_total += self.matriz_distancias[ruta[i]][ruta[i + 1]]
         return distancia_total
     
-    def optimizar_ruta(self, metodo: str = 'ortools') -> Dict:
+    def optimizar_ruta(self, metodo="ortools"):
         """
         Ejecuta la optimización usando el método especificado.
         
@@ -168,13 +168,13 @@ class RouteOptimizer:
         Returns:
             Diccionario con resultados de optimización
         """
-        print(f"\n🔧 Optimizando ruta con método: {metodo}")
+        print(f"\nOptimizando ruta con método: {metodo}")
         print("-" * 50)
         
-        resultados = {}
         tiempo_inicio = time.time()
-        
-        if metodo == 'ortools' or metodo == 'todos':
+        resultados = {}
+
+        if metodo == "ortools" or metodo == "todos":
             inicio = time.time()
             ruta, distancia = self.algoritmo_ortools()
             tiempo = time.time() - inicio
@@ -186,7 +186,7 @@ class RouteOptimizer:
                 'num_paradas': len(ruta) - 1
             }
         
-        if metodo == 'vecino_cercano' or metodo == 'todos':
+        if metodo == "vecino_cercano" or metodo == "todos":
             inicio = time.time()
             ruta, distancia = self.algoritmo_vecino_mas_cercano()
             tiempo = time.time() - inicio
@@ -198,7 +198,7 @@ class RouteOptimizer:
                 'num_paradas': len(ruta) - 1
             }
         
-        if metodo == 'fuerza_bruta' or (metodo == 'todos' and self.num_puntos <= 10):
+        if metodo == "fuerza_bruta" or (metodo == "todos" and self.num_puntos <= 10):
             inicio = time.time()
             ruta, distancia = self.algoritmo_fuerza_bruta()
             tiempo = time.time() - inicio
@@ -284,17 +284,17 @@ class RouteOptimizer:
         Imprime un resumen detallado de la optimización.
         """
         if not self.resultados:
-            print("❌ No hay resultados disponibles. Ejecute optimización primero.")
+            print("ERROR: No hay resultados disponibles. Ejecute optimizacion primero.")
             return
         
         print("\n" + "="*60)
-        print("📊 RESUMEN DE OPTIMIZACIÓN DE RUTAS")
+        print("RESUMEN DE OPTIMIZACION DE RUTAS")
         print("="*60)
         
-        print(f"\n🏭 Almacén central: {self.direcciones.iloc[0]['direccion']}")
-        print(f"📦 Número de entregas: {self.num_puntos - 1}")
+        print(f"\nAlmacen central: {self.direcciones.iloc[0]['direccion']}")
+        print(f"Numero de entregas: {self.num_puntos - 1}")
         
-        print(f"\n🏆 MEJOR SOLUCIÓN:")
+        print(f"\nMEJOR SOLUCION:")
         mejor_metodo = min(self.resultados.keys(), 
                           key=lambda k: self.resultados[k]['distancia_km'])
         mejor_resultado = self.resultados[mejor_metodo]
@@ -306,12 +306,12 @@ class RouteOptimizer:
         
         if 'ahorro_estimado' in self.resultados and self.resultados.get('ahorro_estimado'):
             ahorro = self.resultados['ahorro_estimado']
-            print(f"\n💰 AHORRO ESTIMADO:")
+            print(f"\nAHORRO ESTIMADO:")
             print(f"  • Ruta sin optimizar: {ahorro['distancia_naive_km']} km")
             print(f"  • Ruta optimizada: {ahorro['distancia_optimizada_km']} km")
             print(f"  • Ahorro: {ahorro['ahorro_km']} km ({ahorro['porcentaje_ahorro']}%)")
         
-        print(f"\n📊 COMPARACIÓN DE MÉTODOS:")
+        print(f"\nCOMPARACION DE METODOS:")
         if hasattr(self, 'resultados') and 'comparacion_metodos' in self.resultados:
             for metodo, datos in self.resultados['comparacion_metodos'].items():
                 print(f"  • {metodo.replace('_', ' ').title()}: {datos['distancia_km']} km")
@@ -323,15 +323,15 @@ def main():
     """
     Función principal para probar el optimizador.
     """
-    print("🚀 Iniciando optimización de rutas...")
+    print("Iniciando optimizacion de rutas...")
     
     try:
         # Cargar datos
-        print("📂 Cargando datos...")
+        print("Cargando datos...")
         direcciones = pd.read_csv("../data/direcciones.csv")
         matriz_distancias = pd.read_csv("../data/distancias.csv").values
         
-        print(f"✅ Datos cargados: {len(direcciones)} direcciones")
+        print(f"Datos cargados: {len(direcciones)} direcciones")
         
         # Crear optimizador
         optimizador = RouteOptimizer(matriz_distancias, direcciones)
@@ -345,16 +345,16 @@ def main():
         # Guardar resultados
         ruta_detallada = optimizador.obtener_ruta_con_direcciones()
         ruta_detallada.to_csv("../output/ruta_optimizada.csv", index=False)
-        print(f"\n💾 Ruta detallada guardada en: output/ruta_optimizada.csv")
+        print(f"\nRuta detallada guardada en: output/ruta_optimizada.csv")
         
         return resultados
         
     except FileNotFoundError:
-        print("❌ Error: No se encontraron los archivos de datos.")
+        print("ERROR: No se encontraron los archivos de datos.")
         print("   Ejecute primero data_generator.py para crear los datos.")
         return None
     except Exception as e:
-        print(f"❌ Error durante la optimización: {e}")
+        print(f"ERROR durante la optimizacion: {e}")
         return None
 
 

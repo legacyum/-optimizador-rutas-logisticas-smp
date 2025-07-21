@@ -10,6 +10,9 @@ import os
 import sys
 from io import StringIO
 import base64
+import folium
+from streamlit_folium import folium_static
+import time
 
 # Agregar el directorio actual al path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -22,9 +25,50 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Título principal
-st.title("🚚 Optimizador de Rutas de Última Milla")
-st.markdown("### 📍 San Martín de Porres, Lima, Perú")
+# CSS personalizado para mejorar la apariencia
+st.markdown("""
+<style>
+    .main-header {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .metric-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .success-box {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Título principal con estilo
+st.markdown("""
+<div class="main-header">
+    <h1>🚚 Optimizador de Rutas de Última Milla</h1>
+    <h3>📍 San Martín de Porres, Lima, Perú</h3>
+</div>
+""", unsafe_allow_html=True)
 
 # Información del proyecto
 with st.expander("ℹ️ Información del Proyecto"):
@@ -299,36 +343,179 @@ with tab3:
                         st.error(f"❌ Error generando mapa: {e}")
         
         with col2:
-            st.subheader("🌐 Mapa Interactivo")
+            st.markdown("""
+            <div class="success-box">
+                <h3>🌐 Mapa Interactivo de Rutas</h3>
+                <p>Visualización completa de la ruta optimizada con todas las entregas</p>
+            </div>
+            """, unsafe_allow_html=True)
             
             if mapa_existe:
-                st.success("✅ Mapa disponible")
-                
-                # Leer el contenido del archivo HTML del mapa
-                archivo_mapa = os.path.join(output_dir, "mapa_ruta_optimizada.html")
-                
+                # Crear mapa dinámico con Folium
                 try:
-                    with open(archivo_mapa, 'r', encoding='utf-8') as f:
-                        mapa_html = f.read()
+                    from data_generator import DataGenerator
+                    from route_optimizer import RouteOptimizer
+                    from map_visualizer import MapVisualizer
                     
-                    # Mostrar el mapa directamente en Streamlit
-                    st.components.v1.html(mapa_html, height=600, scrolling=True)
+                    # Cargar datos
+                    df = pd.read_csv("../data/direcciones_ejemplo.csv")
                     
-                    # Información adicional
-                    st.info(f"📁 Archivo guardado en: `{archivo_mapa}`")
+                    # Crear mapa mejorado usando el visualizador actualizado
+                    coordenadas = [(row['latitud'], row['longitud']) for _, row in df.iterrows()]
+                    generator = DataGenerator()
+                    matriz_distancias = generator.calcular_matriz_distancias(coordenadas)
+                    optimizer = RouteOptimizer(matriz_distancias, df)
+                    resultado = optimizer.optimizar_ruta(metodo)
                     
-                except Exception as e:
-                    st.error(f"❌ Error cargando mapa: {e}")
+                    # Crear visualizador con separación de puntos
+                    ruta = resultado['mejor_ruta']
+                    visualizer = MapVisualizer(df, ruta)
                     
-                    # Fallback: mostrar información del archivo
-                    st.markdown(f"""
-                    <div style="padding: 20px; border: 2px solid #1f77b4; border-radius: 10px; background-color: #f0f8ff;">
-                        <h4>🗺️ Mapa de Ruta Optimizada</h4>
-                        <p>El mapa interactivo ha sido generado con la ruta optimizada.</p>
-                        <p><strong>Archivo:</strong> <code>{archivo_mapa}</code></p>
-                        <p><em>Abra este archivo en su navegador para ver el mapa interactivo.</em></p>
+                    # Crear mapa base con Folium
+                    mapa_folium = folium.Map(
+                        location=[-11.9775, -77.0904],
+                        zoom_start=13,
+                        tiles='OpenStreetMap'
+                    )
+                    
+                    # Usar el sistema de separación de puntos del visualizador
+                    df_separado = visualizer.direcciones_visualizacion
+                    
+                    # Colores únicos para identificar fácilmente los puntos problemáticos
+                    colores_especiales = {
+                        0: 'red',      # Almacén
+                        8: 'purple',   # Punto 8 - MORADO
+                        13: 'green',   # Punto 13 - VERDE  
+                        14: 'orange',  # Punto 14 - NARANJA
+                        15: 'pink'     # Punto 15 - ROSA
+                    }
+                    
+                    # Agregar marcadores
+                    for idx, row in df_separado.iterrows():
+                        tipo = df.iloc[idx]['tipo']
+                        direccion_original = df.iloc[idx]['direccion']
+                        
+                        # Color especial para puntos problemáticos
+                        if idx in colores_especiales:
+                            color = colores_especiales[idx]
+                        else:
+                            color = 'blue'
+                        
+                        # Orden en ruta
+                        orden_en_ruta = ruta.index(idx) + 1 if idx in ruta else 'N/A'
+                        
+                        # Popup mejorado
+                        popup_html = f"""
+                        <div style="font-size: 14px; width: 280px;">
+                            <h3 style="color: {color}; text-align: center;">
+                                {'🏭 ALMACÉN' if tipo == 'almacen' else f'📦 ENTREGA {idx}'}
+                            </h3>
+                            <hr>
+                            <p><b>🔢 Orden en ruta:</b> <span style="font-size: 18px; color: red;">{orden_en_ruta}</span></p>
+                            <p><b>📍 Dirección:</b><br>{direccion_original}</p>
+                            {f'<p style="color: orange;"><b>⚠️ Posición ajustada para visualización</b></p>' if idx in [13, 15] else ''}
+                        </div>
+                        """
+                        
+                        # Marcador principal
+                        folium.Marker(
+                            location=[row['latitud'], row['longitud']],
+                            popup=folium.Popup(popup_html, max_width=300),
+                            tooltip=f"Entrega {idx} - Orden {orden_en_ruta}",
+                            icon=folium.Icon(
+                                color=color,
+                                icon='home' if tipo == 'almacen' else 'shopping-cart',
+                                prefix='fa'
+                            )
+                        ).add_to(mapa_folium)
+                        
+                        # Número de orden
+                        if orden_en_ruta != 'N/A':
+                            folium.Marker(
+                                location=[row['latitud'], row['longitud']],
+                                icon=folium.DivIcon(
+                                    html=f'''<div style="font-size: 12px; color: white; font-weight: bold; 
+                                             text-align: center; background-color: orange; border-radius: 50%; 
+                                             width: 24px; height: 24px; line-height: 24px; 
+                                             border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.5);">
+                                             {orden_en_ruta}</div>''',
+                                    icon_size=(24, 24),
+                                    icon_anchor=(12, 12)
+                                )
+                            ).add_to(mapa_folium)
+                    
+                    # Agregar línea de ruta
+                    coordenadas_ruta = []
+                    for punto_idx in ruta:
+                        row = df_separado.iloc[punto_idx]
+                        coordenadas_ruta.append([row['latitud'], row['longitud']])
+                    
+                    folium.PolyLine(
+                        coordenadas_ruta,
+                        color='red',
+                        weight=4,
+                        opacity=0.8,
+                        popup=f'Ruta Optimizada: {resultado["mejor_distancia_km"]:.2f} km'
+                    ).add_to(mapa_folium)
+                    
+                    # Mostrar mapa usando streamlit-folium
+                    folium_static(mapa_folium, width=700, height=500)
+                    
+                    # Información de puntos críticos
+                    st.markdown("""
+                    <div class="warning-box">
+                        <h4>⚠️ Puntos con Separación Visual:</h4>
+                        <ul>
+                            <li><b>🟣 Entrega 8:</b> Orden 14 - Jr. Santa Rosa 106</li>
+                            <li><b>🟢 Entrega 13:</b> Orden 13 - Jr. San Martín 110 (Reposicionado)</li>
+                            <li><b>🟠 Entrega 14:</b> Orden 15 - Av. Universitaria 474</li>
+                            <li><b>🩷 Entrega 15:</b> Orden 12 - Jr. Los Olivos 476 (Reposicionado)</li>
+                        </ul>
+                        <p><small>Los puntos 8, 13 y 15 tenían coordenadas idénticas y se separaron visualmente para mejor identificación.</small></p>
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                except Exception as e:
+                    st.error(f"❌ Error creando mapa dinámico: {e}")
+                    
+                    # Fallback: intentar cargar el archivo HTML
+                    try:
+                        archivo_mapa = os.path.join(output_dir, "mapa_ruta_optimizada.html")
+                        with open(archivo_mapa, 'r', encoding='utf-8') as f:
+                            mapa_html = f.read()
+                        
+                        st.components.v1.html(mapa_html, height=600, scrolling=True)
+                        st.info(f"📁 Mapa cargado desde archivo: `{archivo_mapa}`")
+                        
+                    except Exception as e2:
+                        st.error(f"❌ Error cargando archivo de mapa: {e2}")
+                        
+                        # Último fallback: mostrar información
+                        st.markdown(f"""
+                        <div style="padding: 20px; border: 2px solid #f44336; border-radius: 10px; background-color: #ffebee;">
+                            <h4>🗺️ Mapa No Disponible</h4>
+                            <p>El mapa no se pudo cargar. Por favor:</p>
+                            <ol>
+                                <li>Haga clic en "🗺️ Crear Mapa Interactivo"</li>
+                                <li>Espere a que se genere el mapa</li>
+                                <li>Actualice la página si es necesario</li>
+                            </ol>
+                            <p>📍 Todas las 15 entregas están incluidas en la optimización</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="warning-box">
+                    <h4>🗺️ Mapa No Disponible</h4>
+                    <p>Para generar el mapa interactivo:</p>
+                    <ol>
+                        <li>Complete el proceso de optimización</li>
+                        <li>Haga clic en "🗺️ Crear Mapa Interactivo"</li>
+                        <li>Espere a que se genere el mapa</li>
+                    </ol>
+                    <p><em>El mapa mostrará todas las 15 entregas con colores únicos para fácil identificación.</em></p>
+                </div>
+                """, unsafe_allow_html=True)
                 
                 # Mostrar información de la ruta
                 if ruta_existe:

@@ -138,7 +138,59 @@ class DataGenerator:
         
         return lat, lon
     
+    def generar_direcciones_san_martin_porres(self, num_entregas: int = 15) -> pd.DataFrame:
+        """
+        Genera direcciones ficticias en San Martín de Porres.
+        
+        Args:
+            num_entregas: Número de entregas a generar
+            
+        Returns:
+            DataFrame con direcciones y coordenadas
+        """
+        print(f"Generando {num_entregas} entregas en San Martin de Porres...")
+        
+        # Generar direcciones ficticias
+        direcciones_ficticias = self.generar_direcciones_ficticias()
+        
+        # Tomar las primeras direcciones según el número solicitado
+        direcciones_seleccionadas = direcciones_ficticias[:num_entregas]
+        
+        # Crear dataset
+        datos = []
+        
+        # Agregar almacén
+        datos.append({
+            'id': 0,
+            'tipo': 'almacen',
+            'direccion': 'Av. Canta Callao 1000, San Martin de Porres',
+            'latitud': -11.9775,
+            'longitud': -77.0904
+        })
+        
+        # Agregar entregas
+        for i, direccion in enumerate(direcciones_seleccionadas, 1):
+            # Intentar obtener coordenadas reales
+            lat, lng = self.obtener_coordenadas_nominatim(direccion + ", San Martin de Porres, Lima")
+            
+            datos.append({
+                'id': i,
+                'tipo': 'entrega',
+                'direccion': direccion,
+                'latitud': lat,
+                'longitud': lng
+            })
+            
+            # Pausa para no sobrecargar la API
+            time.sleep(0.1)
+        
+        return pd.DataFrame(datos)
+
     def generar_dataset_completo(self) -> pd.DataFrame:
+        """
+        Método legacy - usa generar_direcciones_san_martin_porres.
+        """
+        return self.generar_direcciones_san_martin_porres(15)
         """
         Genera el dataset completo con direcciones y coordenadas.
         """
@@ -169,6 +221,35 @@ class DataGenerator:
         
         return df
     
+    def calcular_distancia_haversine(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """
+        Calcula la distancia entre dos puntos usando la fórmula de Haversine.
+        
+        Args:
+            lat1, lon1: Coordenadas del primer punto
+            lat2, lon2: Coordenadas del segundo punto
+            
+        Returns:
+            Distancia en kilómetros
+        """
+        R = 6371  # Radio de la Tierra en kilómetros
+        
+        # Convertir a radianes
+        lat1_rad = np.radians(lat1)
+        lon1_rad = np.radians(lon1)
+        lat2_rad = np.radians(lat2)
+        lon2_rad = np.radians(lon2)
+        
+        # Diferencias
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+        
+        # Fórmula de Haversine
+        a = np.sin(dlat/2)**2 + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon/2)**2
+        c = 2 * np.arcsin(np.sqrt(a))
+        
+        return R * c
+
     def calcular_matriz_distancias(self, coordenadas: List[Tuple[float, float]]) -> np.ndarray:
         """
         Calcula la matriz de distancias euclidianas entre todos los puntos.
@@ -193,12 +274,37 @@ class DataGenerator:
         
         return matriz
     
-    def guardar_datos(self, df: pd.DataFrame, ruta_archivo: str = "../data/direcciones.csv"):
+    def guardar_datos(self, direcciones: pd.DataFrame, matriz_distancias: np.ndarray, directorio: str = "../data"):
         """
-        Guarda el dataset de direcciones.
+        Guarda tanto las direcciones como la matriz de distancias.
+        
+        Args:
+            direcciones: DataFrame con direcciones
+            matriz_distancias: Matriz de distancias
+            directorio: Directorio donde guardar
+        """
+        from pathlib import Path
+        
+        # Crear directorio si no existe
+        Path(directorio).mkdir(exist_ok=True)
+        
+        # Guardar direcciones
+        archivo_direcciones = Path(directorio) / "direcciones_ejemplo.csv"
+        direcciones.to_csv(archivo_direcciones, index=False, encoding='utf-8')
+        print(f"Datos guardados en: {archivo_direcciones}")
+        
+        # Guardar matriz de distancias
+        archivo_distancias = Path(directorio) / "distancias.csv"
+        df_matriz = pd.DataFrame(matriz_distancias)
+        df_matriz.to_csv(archivo_distancias, index=False, header=False)
+        print(f"Matriz de distancias guardada en: {archivo_distancias}")
+    
+    def guardar_direcciones(self, df: pd.DataFrame, ruta_archivo: str = "../data/direcciones.csv"):
+        """
+        Guarda solo el dataset de direcciones (método legacy).
         """
         df.to_csv(ruta_archivo, index=False, encoding='utf-8')
-        print(f"✅ Datos guardados en: {ruta_archivo}")
+        print(f"Datos guardados en: {ruta_archivo}")
     
     def guardar_matriz_distancias(self, matriz: np.ndarray, ruta_archivo: str = "../data/distancias.csv"):
         """
