@@ -95,6 +95,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# This is a Streamlit application, so there is no main function.
+# The code below is executed from top to bottom when the app is run.
+
 # Agregar path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 

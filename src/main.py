@@ -24,16 +24,16 @@ except ImportError as e:
 
 class LogisticsOptimizer:
     """
-    Clase principal que coordina todo el proceso de optimización logística.
+    Main class that coordinates the entire logistics optimization process.
     """
     
     def __init__(self, directorio_datos: str = "../data", directorio_salida: str = "../output"):
         """
-        Inicializa el optimizador logístico.
+        Initializes the logistics optimizer.
         
         Args:
-            directorio_datos: Directorio donde se guardan/cargan los datos
-            directorio_salida: Directorio donde se guardan los resultados
+            directorio_datos (str, optional): Directory where data is stored/loaded. Defaults to "../data".
+            directorio_salida (str, optional): Directory where results are saved. Defaults to "../output".
         """
         self.directorio_datos = directorio_datos
         self.directorio_salida = directorio_salida
@@ -50,13 +50,13 @@ class LogisticsOptimizer:
     
     def paso_1_generar_datos(self, forzar_regeneracion: bool = False) -> bool:
         """
-        Genera o carga los datos de direcciones y distancias.
+        Generates or loads address and distance data.
         
         Args:
-            forzar_regeneracion: Si True, regenera los datos aunque ya existan
+            forzar_regeneracion (bool, optional): If True, regenerates data even if it already exists. Defaults to False.
             
         Returns:
-            True si los datos están listos, False en caso de error
+            bool: True if the data is ready, False in case of an error.
         """
         print("\n" + "="*60)
         print("📊 PASO 1: GENERACIÓN DE DATOS")
@@ -109,13 +109,13 @@ class LogisticsOptimizer:
     
     def paso_2_optimizar_ruta(self, metodo: str = 'ortools') -> bool:
         """
-        Optimiza la ruta usando el método especificado.
+        Optimizes the route using the specified method.
         
         Args:
-            metodo: Método de optimización ('ortools', 'vecino_cercano', 'todos')
+            metodo (str, optional): Optimization method ('ortools', 'vecino_cercano', 'todos'). Defaults to 'ortools'.
             
         Returns:
-            True si la optimización fue exitosa, False en caso contrario
+            bool: True if the optimization was successful, False otherwise.
         """
         print("\n" + "="*60)
         print("🚀 PASO 2: OPTIMIZACIÓN DE RUTAS")
@@ -150,10 +150,10 @@ class LogisticsOptimizer:
     
     def paso_3_generar_visualizacion(self) -> bool:
         """
-        Genera la visualización interactiva de la ruta optimizada.
+        Generates the interactive visualization of the optimized route.
         
         Returns:
-            True si la visualización fue exitosa, False en caso contrario
+            bool: True if the visualization was successful, False otherwise.
         """
         print("\n" + "="*60)
         print("🗺️ PASO 3: GENERACIÓN DE VISUALIZACIÓN")
@@ -197,10 +197,10 @@ class LogisticsOptimizer:
     
     def generar_reporte_completo(self) -> bool:
         """
-        Genera un reporte completo en formato CSV con todas las métricas.
+        Generates a complete report in CSV format with all the metrics.
         
         Returns:
-            True si el reporte fue generado exitosamente
+            bool: True if the report was generated successfully.
         """
         print("\n📋 Generando reporte completo...")
         
@@ -268,14 +268,14 @@ class LogisticsOptimizer:
     def ejecutar_proceso_completo(self, metodo_optimizacion: str = 'ortools',
                                  forzar_regeneracion: bool = False) -> bool:
         """
-        Ejecuta todo el proceso de optimización logística.
+        Executes the entire logistics optimization process.
         
         Args:
-            metodo_optimizacion: Método para optimizar ('ortools', 'vecino_cercano', 'todos')
-            forzar_regeneracion: Si regenerar datos aunque ya existan
+            metodo_optimizacion (str, optional): Method to optimize ('ortools', 'vecino_cercano', 'todos'). Defaults to 'ortools'.
+            forzar_regeneracion (bool, optional): Whether to regenerate data even if it exists. Defaults to False.
             
         Returns:
-            True si todo el proceso fue exitoso
+            bool: True if the entire process was successful.
         """
         print("🚀 INICIANDO PROCESO COMPLETO DE OPTIMIZACIÓN LOGÍSTICA")
         print("🎯 Proyecto: Optimizador de Rutas de Última Milla")
@@ -322,7 +322,7 @@ class LogisticsOptimizer:
 
 def main():
     """
-    Función principal con interfaz de línea de comandos.
+    Main function with command line interface.
     """
     parser = argparse.ArgumentParser(
         description="Optimizador de Rutas de Última Milla - San Martín de Porres"

@@ -12,14 +12,29 @@ import json
 import os
 
 class DataGenerator:
+    """
+    A class to generate fictional address data and obtain their coordinates.
+    """
     def __init__(self, google_api_key: str = None):
+        """
+        Initializes the DataGenerator.
+
+        Args:
+            google_api_key (str, optional): The Google Maps API key. Defaults to None.
+        """
         self.direcciones_smp = []
         self.coordenadas = []
         self.google_api_key = google_api_key or os.getenv('GOOGLE_MAPS_API_KEY')
         
     def obtener_coordenadas_google_maps(self, direccion: str) -> Tuple[float, float]:
         """
-        Obtiene coordenadas usando Google Maps Geocoding API.
+        Gets coordinates using Google Maps Geocoding API.
+
+        Args:
+            direccion (str): The address to geocode.
+
+        Returns:
+            Tuple[float, float]: A tuple containing the latitude and longitude.
         """
         if not self.google_api_key:
             print("⚠️ Google Maps API key no disponible. Usando Nominatim como alternativa.")
@@ -88,7 +103,13 @@ class DataGenerator:
     
     def obtener_coordenadas_nominatim(self, direccion: str) -> Tuple[float, float]:
         """
-        Obtiene coordenadas usando la API gratuita de Nominatim (OpenStreetMap).
+        Gets coordinates using the free Nominatim API (OpenStreetMap).
+
+        Args:
+            direccion (str): The address to geocode.
+
+        Returns:
+            Tuple[float, float]: A tuple containing the latitude and longitude.
         """
         try:
             # URL base para Nominatim
@@ -127,7 +148,10 @@ class DataGenerator:
     
     def _coordenadas_aproximadas_smp(self) -> Tuple[float, float]:
         """
-        Retorna coordenadas aproximadas dentro de San Martín de Porres.
+        Returns approximate coordinates within San Martín de Porres.
+
+        Returns:
+            Tuple[float, float]: A tuple containing the latitude and longitude.
         """
         # Límites geográficos aproximados de San Martín de Porres
         lat_min, lat_max = -11.9950, -11.9600
@@ -188,11 +212,17 @@ class DataGenerator:
 
     def generar_dataset_completo(self) -> pd.DataFrame:
         """
-        Método legacy - usa generar_direcciones_san_martin_porres.
+        Legacy method - uses generar_direcciones_san_martin_porres.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the complete dataset.
         """
         return self.generar_direcciones_san_martin_porres(15)
         """
-        Genera el dataset completo con direcciones y coordenadas.
+        Generates the complete dataset with addresses and coordinates.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the complete dataset.
         """
         print("🏭 Generando direcciones ficticias...")
         direcciones = self.generar_direcciones_ficticias()
@@ -252,8 +282,14 @@ class DataGenerator:
 
     def calcular_matriz_distancias(self, coordenadas: List[Tuple[float, float]]) -> np.ndarray:
         """
-        Calcula la matriz de distancias euclidianas entre todos los puntos.
-        Para un proyecto real, se usaría una API de rutas reales.
+        Calculates the Euclidean distance matrix between all points.
+        For a real project, a real route API would be used.
+
+        Args:
+            coordenadas (List[Tuple[float, float]]): A list of tuples with latitude and longitude.
+
+        Returns:
+            np.ndarray: A matrix with the distances between points.
         """
         n = len(coordenadas)
         matriz = np.zeros((n, n))
@@ -276,12 +312,12 @@ class DataGenerator:
     
     def guardar_datos(self, direcciones: pd.DataFrame, matriz_distancias: np.ndarray, directorio: str = "../data"):
         """
-        Guarda tanto las direcciones como la matriz de distancias.
+        Saves both the addresses and the distance matrix.
         
         Args:
-            direcciones: DataFrame con direcciones
-            matriz_distancias: Matriz de distancias
-            directorio: Directorio donde guardar
+            direcciones (pd.DataFrame): DataFrame with addresses.
+            matriz_distancias (np.ndarray): Distance matrix.
+            directorio (str, optional): Directory where to save the data. Defaults to "../data".
         """
         from pathlib import Path
         
@@ -301,14 +337,22 @@ class DataGenerator:
     
     def guardar_direcciones(self, df: pd.DataFrame, ruta_archivo: str = "../data/direcciones.csv"):
         """
-        Guarda solo el dataset de direcciones (método legacy).
+        Saves only the address dataset (legacy method).
+
+        Args:
+            df (pd.DataFrame): The DataFrame to save.
+            ruta_archivo (str, optional): The path to the file. Defaults to "../data/direcciones.csv".
         """
         df.to_csv(ruta_archivo, index=False, encoding='utf-8')
         print(f"Datos guardados en: {ruta_archivo}")
     
     def guardar_matriz_distancias(self, matriz: np.ndarray, ruta_archivo: str = "../data/distancias.csv"):
         """
-        Guarda la matriz de distancias.
+        Saves the distance matrix.
+
+        Args:
+            matriz (np.ndarray): The matrix to save.
+            ruta_archivo (str, optional): The path to the file. Defaults to "../data/distancias.csv".
         """
         df_matriz = pd.DataFrame(matriz)
         df_matriz.to_csv(ruta_archivo, index=False)

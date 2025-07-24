@@ -19,13 +19,16 @@ except ImportError:
 
 
 class RouteOptimizer:
+    """
+    A class to optimize routes using TSP algorithms.
+    """
     def __init__(self, matriz_distancias: np.ndarray, direcciones: pd.DataFrame):
         """
-        Inicializa el optimizador de rutas.
+        Initializes the RouteOptimizer.
         
         Args:
-            matriz_distancias: Matriz NxN con distancias entre puntos
-            direcciones: DataFrame con información de las direcciones
+            matriz_distancias (np.ndarray): An NxN matrix with distances between points.
+            direcciones (pd.DataFrame): A DataFrame with information about the addresses.
         """
         self.matriz_distancias = matriz_distancias
         self.direcciones = direcciones
@@ -36,8 +39,11 @@ class RouteOptimizer:
     
     def algoritmo_fuerza_bruta(self) -> Tuple[List[int], float]:
         """
-        Implementa algoritmo de fuerza bruta para TSP.
-        Solo recomendado para pequeño número de puntos (<10).
+        Implements a brute-force algorithm for TSP.
+        Only recommended for a small number of points (<10).
+
+        Returns:
+            Tuple[List[int], float]: A tuple containing the best route and the total distance.
         """
         if self.num_puntos > 10:
             print("ADVERTENCIA: Demasiados puntos para fuerza bruta. Usando algoritmo heuristico.")
@@ -64,8 +70,11 @@ class RouteOptimizer:
     
     def algoritmo_vecino_mas_cercano(self) -> Tuple[List[int], float]:
         """
-        Implementa algoritmo heurístico del vecino más cercano.
-        Rápido pero no garantiza solución óptima.
+        Implements the nearest neighbor heuristic algorithm.
+        It is fast but does not guarantee an optimal solution.
+
+        Returns:
+            Tuple[List[int], float]: A tuple containing the route and the total distance.
         """
         print("Ejecutando algoritmo del vecino mas cercano...")
         
@@ -93,8 +102,11 @@ class RouteOptimizer:
     
     def algoritmo_ortools(self) -> Tuple[List[int], float]:
         """
-        Implementa optimización usando OR-Tools de Google.
-        Más eficiente y preciso para problemas grandes.
+        Implements optimization using Google's OR-Tools.
+        It is more efficient and accurate for large problems.
+
+        Returns:
+            Tuple[List[int], float]: A tuple containing the route and the total distance.
         """
         if not ORTOOLS_AVAILABLE:
             print("ADVERTENCIA: OR-Tools no disponible. Usando vecino mas cercano.")
@@ -151,7 +163,13 @@ class RouteOptimizer:
     
     def calcular_distancia_ruta(self, ruta: List[int]) -> float:
         """
-        Calcula la distancia total de una ruta dada.
+        Calculates the total distance of a given route.
+
+        Args:
+            ruta (List[int]): A list of point IDs representing the route.
+
+        Returns:
+            float: The total distance of the route.
         """
         distancia_total = 0
         for i in range(len(ruta) - 1):
@@ -160,13 +178,13 @@ class RouteOptimizer:
     
     def optimizar_ruta(self, metodo="ortools"):
         """
-        Ejecuta la optimización usando el método especificado.
+        Executes the optimization using the specified method.
         
         Args:
-            metodo: 'ortools', 'vecino_cercano', 'fuerza_bruta', 'todos'
+            metodo (str, optional): 'ortools', 'vecino_cercano', 'fuerza_bruta', 'todos'. Defaults to "ortools".
         
         Returns:
-            Diccionario con resultados de optimización
+            Dict: A dictionary with the optimization results.
         """
         print(f"\nOptimizando ruta con método: {metodo}")
         print("-" * 50)
@@ -237,7 +255,10 @@ class RouteOptimizer:
     
     def _calcular_ahorro_vs_ruta_naive(self) -> Dict:
         """
-        Calcula el ahorro comparado con una ruta naive (orden secuencial).
+        Calculates the savings compared to a naive route (sequential order).
+
+        Returns:
+            Dict: A dictionary with the savings information.
         """
         # Ruta naive: visitar puntos en orden secuencial
         ruta_naive = list(range(self.num_puntos)) + [0]
@@ -256,7 +277,10 @@ class RouteOptimizer:
     
     def obtener_ruta_con_direcciones(self) -> pd.DataFrame:
         """
-        Convierte la ruta optimizada en un DataFrame con direcciones legibles.
+        Converts the optimized route into a DataFrame with readable addresses.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the detailed route.
         """
         if not self.mejor_ruta:
             raise ValueError("Debe ejecutar optimización primero")
@@ -281,7 +305,7 @@ class RouteOptimizer:
     
     def imprimir_resumen(self):
         """
-        Imprime un resumen detallado de la optimización.
+        Prints a detailed summary of the optimization.
         """
         if not self.resultados:
             print("ERROR: No hay resultados disponibles. Ejecute optimizacion primero.")
@@ -321,7 +345,7 @@ class RouteOptimizer:
 
 def main():
     """
-    Función principal para probar el optimizador.
+    Main function to test the optimizer.
     """
     print("Iniciando optimizacion de rutas...")
     

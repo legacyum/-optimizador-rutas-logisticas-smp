@@ -13,17 +13,17 @@ import requests
 
 class GoogleMapsVisualizer:
     """
-    Visualizador que integra Google Maps con Folium para crear mapas interactivos.
+    A visualizer that integrates Google Maps with Folium to create interactive maps.
     """
     
     def __init__(self, direcciones: pd.DataFrame, ruta_optimizada: List[int], google_api_key: str = None):
         """
-        Inicializa el visualizador de mapas con Google Maps.
+        Initializes the map visualizer with Google Maps.
         
         Args:
-            direcciones: DataFrame con direcciones y coordenadas
-            ruta_optimizada: Lista con el orden optimizado de los puntos
-            google_api_key: Clave de API de Google Maps
+            direcciones (pd.DataFrame): DataFrame with addresses and coordinates.
+            ruta_optimizada (List[int]): List with the optimized order of points.
+            google_api_key (str, optional): The Google Maps API key. Defaults to None.
         """
         self.direcciones = direcciones
         self.ruta_optimizada = ruta_optimizada
@@ -35,7 +35,14 @@ class GoogleMapsVisualizer:
     
     def obtener_ruta_google_maps(self, origen: Tuple[float, float], destino: Tuple[float, float]) -> List[Tuple[float, float]]:
         """
-        Obtiene la ruta real entre dos puntos usando Google Maps Directions API.
+        Gets the real route between two points using the Google Maps Directions API.
+
+        Args:
+            origen (Tuple[float, float]): The origin coordinates.
+            destino (Tuple[float, float]): The destination coordinates.
+
+        Returns:
+            List[Tuple[float, float]]: A list of coordinates representing the route.
         """
         if not self.google_api_key:
             # Si no hay API key, retornar línea recta
@@ -69,7 +76,13 @@ class GoogleMapsVisualizer:
     
     def _decode_polyline(self, polyline_str: str) -> List[Tuple[float, float]]:
         """
-        Decodifica un polyline de Google Maps para obtener coordenadas.
+        Decodes a Google Maps polyline to obtain coordinates.
+
+        Args:
+            polyline_str (str): The polyline string.
+
+        Returns:
+            List[Tuple[float, float]]: A list of coordinates.
         """
         index = 0
         lat = 0
@@ -114,7 +127,10 @@ class GoogleMapsVisualizer:
     
     def crear_mapa_google_maps(self) -> folium.Map:
         """
-        Crea un mapa base con tiles de Google Maps.
+        Creates a base map with Google Maps tiles.
+
+        Returns:
+            folium.Map: The base map.
         """
         # Crear mapa base
         mapa = folium.Map(
@@ -161,7 +177,7 @@ class GoogleMapsVisualizer:
     
     def agregar_marcadores_avanzados(self):
         """
-        Agrega marcadores con información detallada y estilos mejorados.
+        Adds markers with detailed information and improved styles.
         """
         if not self.mapa:
             self.crear_mapa_google_maps()
@@ -247,7 +263,7 @@ class GoogleMapsVisualizer:
     
     def agregar_ruta_google_maps(self):
         """
-        Agrega la ruta optimizada usando rutas reales de Google Maps.
+        Adds the optimized route using real routes from Google Maps.
         """
         if not self.ruta_optimizada or not self.mapa:
             return
@@ -301,7 +317,10 @@ class GoogleMapsVisualizer:
     
     def agregar_panel_informacion_avanzado(self, resultados_optimizacion: Dict):
         """
-        Agrega un panel de información más completo y atractivo.
+        Adds a more complete and attractive information panel.
+
+        Args:
+            resultados_optimizacion (Dict): A dictionary with the optimization results.
         """
         if not self.mapa:
             return
@@ -372,7 +391,14 @@ class GoogleMapsVisualizer:
                                         resultados_optimizacion: Optional[Dict] = None,
                                         archivo_salida: str = "../output/mapa_google_maps.html") -> str:
         """
-        Genera el mapa completo con Google Maps y todos los elementos.
+        Generates the complete map with Google Maps and all the elements.
+
+        Args:
+            resultados_optimizacion (Optional[Dict], optional): The optimization results. Defaults to None.
+            archivo_salida (str, optional): The path to save the HTML file. Defaults to "../output/mapa_google_maps.html".
+
+        Returns:
+            str: The path of the generated file.
         """
         print("🚀 Generando mapa con Google Maps...")
         
@@ -404,7 +430,7 @@ class GoogleMapsVisualizer:
 
 def main():
     """
-    Función principal para probar el visualizador con Google Maps.
+    Main function to test the visualizer with Google Maps.
     """
     print("🚀 Iniciando generación de mapa con Google Maps...")
     
