@@ -26,13 +26,16 @@ except ImportError:
 
 
 class MapVisualizer:
+    """
+    A class to visualize interactive maps to display optimized routes.
+    """
     def __init__(self, direcciones: pd.DataFrame, ruta_optimizada: List[int]):
         """
-        Inicializa el visualizador de mapas.
+        Initializes the map visualizer.
         
         Args:
-            direcciones: DataFrame con direcciones y coordenadas
-            ruta_optimizada: Lista con el orden optimizado de los puntos
+            direcciones (pd.DataFrame): DataFrame with addresses and coordinates.
+            ruta_optimizada (List[int]): List with the optimized order of points.
         """
         self.direcciones = direcciones
         self.ruta_optimizada = ruta_optimizada
@@ -46,8 +49,14 @@ class MapVisualizer:
     
     def _separar_puntos_superpuestos(self, distancia_separacion=0.0003):
         """
-        Separa visualmente los puntos que tienen las mismas coordenadas
-        para evitar superposición en el mapa.
+        Visually separates points that have the same coordinates
+        to avoid overlapping on the map.
+
+        Args:
+            distancia_separacion (float, optional): The separation distance. Defaults to 0.0003.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the separated points.
         """
         import numpy as np
         
@@ -87,7 +96,10 @@ class MapVisualizer:
     
     def crear_mapa_base(self) -> folium.Map:
         """
-        Crea el mapa base centrado en San Martín de Porres.
+        Creates the base map centered in San Martín de Porres.
+
+        Returns:
+            folium.Map: The base map.
         """
         if not FOLIUM_AVAILABLE:
             raise ImportError("Folium no está disponible. Instale con: pip install folium")
@@ -108,7 +120,7 @@ class MapVisualizer:
     
     def agregar_marcadores(self):
         """
-        Agrega marcadores para todas las ubicaciones usando coordenadas separadas.
+        Adds markers for all locations using separate coordinates.
         """
         if not self.mapa:
             self.crear_mapa_base()
@@ -172,7 +184,10 @@ class MapVisualizer:
     
     def agregar_ruta_optimizada(self, matriz_distancias: Optional[np.ndarray] = None):
         """
-        Agrega la línea de ruta optimizada al mapa usando coordenadas separadas.
+        Adds the optimized route line to the map using separate coordinates.
+
+        Args:
+            matriz_distancias (Optional[np.ndarray], optional): The distance matrix. Defaults to None.
         """
         if not self.ruta_optimizada or not self.mapa:
             return
@@ -213,7 +228,10 @@ class MapVisualizer:
     
     def agregar_informacion_adicional(self, resultados_optimizacion: Dict):
         """
-        Agrega panel de información con estadísticas de la ruta.
+        Adds an information panel with route statistics.
+
+        Args:
+            resultados_optimizacion (Dict): A dictionary with the optimization results.
         """
         if not self.mapa:
             return
@@ -256,7 +274,7 @@ class MapVisualizer:
     
     def agregar_leyenda(self):
         """
-        Agrega una leyenda al mapa.
+        Adds a legend to the map.
         """
         if not self.mapa:
             return
@@ -281,15 +299,15 @@ class MapVisualizer:
                             resultados_optimizacion: Optional[Dict] = None,
                             archivo_salida: str = "../output/mapa_ruta_optimizada.html") -> str:
         """
-        Genera el mapa completo con todos los elementos.
+        Generates the complete map with all the elements.
         
         Args:
-            matriz_distancias: Matriz de distancias (opcional)
-            resultados_optimizacion: Resultados de la optimización (opcional)
-            archivo_salida: Ruta donde guardar el archivo HTML
+            matriz_distancias (Optional[np.ndarray], optional): The distance matrix. Defaults to None.
+            resultados_optimizacion (Optional[Dict], optional): The optimization results. Defaults to None.
+            archivo_salida (str, optional): The path to save the HTML file. Defaults to "../output/mapa_ruta_optimizada.html".
             
         Returns:
-            Ruta del archivo generado
+            str: The path of the generated file.
         """
         print("🗺️ Generando mapa interactivo...")
         
@@ -320,7 +338,11 @@ class MapVisualizer:
     def crear_grafico_distancias(self, matriz_distancias: np.ndarray, 
                                 archivo_salida: str = "../output/grafico_distancias.html"):
         """
-        Crea un gráfico de matriz de distancias usando Plotly.
+        Creates a distance matrix graph using Plotly.
+
+        Args:
+            matriz_distancias (np.ndarray): The distance matrix.
+            archivo_salida (str, optional): The path to save the HTML file. Defaults to "../output/grafico_distancias.html".
         """
         if not PLOTLY_AVAILABLE:
             print("⚠️ Plotly no disponible para crear gráficos adicionales.")
@@ -363,10 +385,14 @@ class MapVisualizer:
                                       matriz_distancias: np.ndarray,
                                       resultados_optimizacion: Dict) -> Dict[str, str]:
         """
-        Genera todos los elementos visuales del proyecto.
+        Generates all the visual elements of the project.
         
+        Args:
+            matriz_distancias (np.ndarray): The distance matrix.
+            resultados_optimizacion (Dict): The optimization results.
+
         Returns:
-            Diccionario con las rutas de archivos generados
+            Dict[str, str]: A dictionary with the paths of the generated files.
         """
         print("\n🎨 Generando reporte visual completo...")
         print("-" * 50)
@@ -395,7 +421,7 @@ class MapVisualizer:
 
 def main():
     """
-    Función principal para probar el visualizador.
+    Main function to test the visualizer.
     """
     print("🚀 Iniciando generación de mapas...")
     

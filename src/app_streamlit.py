@@ -125,6 +125,16 @@ st.sidebar.write(f"• Mapa Interactivo: {'✅' if mapa_existe else '❌'}")
 
 # Función para mostrar contenido de archivo
 def mostrar_archivo_csv(ruta_archivo, titulo):
+    """
+    Displays the content of a CSV file in a Streamlit app.
+
+    Args:
+        ruta_archivo (str): The path to the CSV file.
+        titulo (str): The title to display.
+
+    Returns:
+        pd.DataFrame: The content of the CSV file as a DataFrame.
+    """
     if os.path.exists(ruta_archivo):
         df = pd.read_csv(ruta_archivo)
         st.subheader(titulo)
@@ -136,6 +146,16 @@ def mostrar_archivo_csv(ruta_archivo, titulo):
 
 # Función para descargar archivo
 def crear_link_descarga(ruta_archivo, nombre_descarga):
+    """
+    Creates a download link for a file.
+
+    Args:
+        ruta_archivo (str): The path to the file.
+        nombre_descarga (str): The name of the downloaded file.
+
+    Returns:
+        str: The download link as an HTML string.
+    """
     if os.path.exists(ruta_archivo):
         with open(ruta_archivo, 'rb') as f:
             data = f.read()

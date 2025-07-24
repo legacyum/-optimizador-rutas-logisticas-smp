@@ -13,6 +13,9 @@ from route_optimizer import RouteOptimizer
 from google_maps_visualizer import GoogleMapsVisualizer
 
 def main():
+    """
+    Main function for the logistics optimization system with Google Maps.
+    """
     print("🚀 Sistema de Optimización Logística con Google Maps")
     print("📍 San Martín de Porres, Lima, Perú")
     print("-" * 60)

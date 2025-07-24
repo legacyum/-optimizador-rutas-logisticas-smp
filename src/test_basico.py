@@ -12,6 +12,9 @@ from data_generator import DataGenerator
 from route_optimizer import RouteOptimizer
 
 def main():
+    """
+    Main function for the basic test of the logistics optimization system.
+    """
     print("🚀 Prueba del sistema de optimización logística")
     print("-" * 50)
     
