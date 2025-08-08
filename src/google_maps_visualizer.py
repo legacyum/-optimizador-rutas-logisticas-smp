@@ -139,9 +139,12 @@ class GoogleMapsVisualizer:
             tiles=None
         )
         
-        # Agregar tiles de Google Maps
-        if self.google_api_key:
-            # Google Maps Satellite
+        # Use OpenStreetMap by default to avoid exposing API keys in client-side tiles
+        folium.TileLayer('OpenStreetMap', name='OpenStreetMap').add_to(mapa)
+        folium.TileLayer('cartodbpositron', name='CartoDB Positron').add_to(mapa)
+        
+        # Optionally add Google tiles only if explicitly requested via env var
+        if os.getenv('ENABLE_GOOGLE_TILES', '0') == '1' and self.google_api_key:
             folium.TileLayer(
                 tiles=f'https://mt1.google.com/vt/lyrs=s&x={{x}}&y={{y}}&z={{z}}&key={self.google_api_key}',
                 attr='Google Maps Satellite',
@@ -149,8 +152,6 @@ class GoogleMapsVisualizer:
                 overlay=False,
                 control=True
             ).add_to(mapa)
-            
-            # Google Maps Roadmap
             folium.TileLayer(
                 tiles=f'https://mt1.google.com/vt/lyrs=m&x={{x}}&y={{y}}&z={{z}}&key={self.google_api_key}',
                 attr='Google Maps',
@@ -158,8 +159,6 @@ class GoogleMapsVisualizer:
                 overlay=False,
                 control=True
             ).add_to(mapa)
-            
-            # Google Maps Hybrid
             folium.TileLayer(
                 tiles=f'https://mt1.google.com/vt/lyrs=y&x={{x}}&y={{y}}&z={{z}}&key={self.google_api_key}',
                 attr='Google Maps Hybrid',
@@ -167,10 +166,6 @@ class GoogleMapsVisualizer:
                 overlay=False,
                 control=True
             ).add_to(mapa)
-        else:
-            # Fallback a OpenStreetMap
-            folium.TileLayer('OpenStreetMap', name='OpenStreetMap').add_to(mapa)
-            folium.TileLayer('cartodbpositron', name='CartoDB Positron').add_to(mapa)
         
         self.mapa = mapa
         return mapa
