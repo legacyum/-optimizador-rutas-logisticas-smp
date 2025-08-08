@@ -319,9 +319,9 @@ class RouteOptimizer:
         print(f"Numero de entregas: {self.num_puntos - 1}")
         
         print(f"\nMEJOR SOLUCION:")
-        mejor_metodo = min(self.resultados.keys(), 
-                          key=lambda k: self.resultados[k]['distancia_km'])
-        mejor_resultado = self.resultados[mejor_metodo]
+        mejor_metodo = self.resultados['mejor_metodo'] if isinstance(self.resultados, dict) and 'mejor_metodo' in self.resultados else min(self.resultados.keys(), key=lambda k: self.resultados[k]['distancia_km'])
+        comparacion = self.resultados.get('comparacion_metodos', self.resultados)
+        mejor_resultado = comparacion[mejor_metodo]
         
         print(f"  • Método: {mejor_metodo.replace('_', ' ').title()}")
         print(f"  • Distancia total: {mejor_resultado['distancia_km']} km")
@@ -336,7 +336,7 @@ class RouteOptimizer:
             print(f"  • Ahorro: {ahorro['ahorro_km']} km ({ahorro['porcentaje_ahorro']}%)")
         
         print(f"\nCOMPARACION DE METODOS:")
-        if hasattr(self, 'resultados') and 'comparacion_metodos' in self.resultados:
+        if 'comparacion_metodos' in self.resultados:
             for metodo, datos in self.resultados['comparacion_metodos'].items():
                 print(f"  • {metodo.replace('_', ' ').title()}: {datos['distancia_km']} km")
         else:

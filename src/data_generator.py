@@ -95,9 +95,6 @@ class DataGenerator:
             direccion = f"{calle} {numeros[i]}, San Martín de Porres, Lima, Perú"
             direcciones.append(direccion)
             
-        # Agregar punto de partida (almacén central)
-        direcciones.insert(0, "Av. Canta Callao 1000, San Martín de Porres, Lima, Perú")
-        
         self.direcciones_smp = direcciones
         return direcciones
     
@@ -195,7 +192,7 @@ class DataGenerator:
         # Agregar entregas
         for i, direccion in enumerate(direcciones_seleccionadas, 1):
             # Intentar obtener coordenadas reales
-            lat, lng = self.obtener_coordenadas_nominatim(direccion + ", San Martin de Porres, Lima")
+            lat, lng = self.obtener_coordenadas_nominatim(direccion)
             
             datos.append({
                 'id': i,
